@@ -43,11 +43,12 @@ jobs:
           playwright install --with-deps
 
       - name: Execute Orchestrator Sequence
+        shell: pwsh
         env:
           HEADLESS: ${{ github.event.inputs.headless }}
           USERNAME: "GitHub-Cloud-Runner"
         run: |
-          powershell -ExecutionPolicy Bypass -File .\Salary_Finance_(Preapproval)\SequenceRunner.ps1
+          ./Salary_Finance_`(Preapproval`)/SequenceRunner.ps1
 
       - name: Archive Test Ledger & Artifact Reports
         if: always()
