@@ -1,0 +1,29 @@
+﻿============================================================
+    END-TO-END PREAPPROVAL JOURNEY SUCCESS REPORT
+============================================================
+USER:           JDavies
+TIMESTAMP:      Thursday, 21 May 2026 11:17:25
+OUTPUT LEDGER:  C:\Users\JDavies\Playwright\DATA_BorrowProactiveActiveAccounts.csv
+STATE RUN FILE: C:\Users\JDavies\Playwright\Salary_Finance_(Preapproval)\bin\Debug\net10.0\teststate.json
+------------------------------------------------------------
+STEP BREAKDOWN & PARAMETERS CAPTURED
+------------------------------------------------------------
+* STEP B (Data Seeding):     SUCCESS
+  -> Seeded User Account:   sharon.rajapaksa.JG168RX@saldev.net
+  -> Internal Payroll ID:   JG168RX
+
+* STEP C (Ops Admin UI):     SUCCESS
+  -> Microservice Syncing:  Verified (rc-validation, rc-loanapi, rc-bankandidcheck)
+  
+* STEP A (API Newman Run):   SUCCESS
+  -> Rendered App Landing:  https://apistaging.saldev.net/preapprovals/9bd0f0cc-1324-4c96-83dd-06727d2ebef6
+
+* STEP D (Loan Placement):   SUCCESS
+  -> Calculated Target URL: 
+  -> Committed Principal:   Â£1500.00
+  -> Core Target Context:   VehicleLoan | Address: 80B High Street, St. Albans, AL3 8LE
+============================================================
+============================================================
+FINAL VERDICT: FULL PREAPPROVAL RUN COMPLETED (LEDGER ARTIFACT GENERATED)
+TOTAL TIME:    3.88 mins
+============================================================

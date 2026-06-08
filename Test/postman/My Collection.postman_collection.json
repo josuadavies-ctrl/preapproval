@@ -1,0 +1,28 @@
+{
+	"info": {
+		"_postman_id": "7bc78d1e-3f7e-408d-8bc5-aaa3d5fbba81",
+		"name": "My Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Preapproval Staging",
+			"request": {
+				"method": "POST",
+				"header": [
+					{ "key": "Content-Type", "value": "application/json", "type": "text" }
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"additionalEmployerIncome\": null,\n    \"additionalHouseholdIncome\": null,\n    \"addressHistory\": [\n        {\n            \"abodeNumber\": null,\n            \"buildingNumber\": \"{{buildingNumber}}\",\n            \"buildingName\": null,\n            \"street\": \"{{street}}\",\n            \"town\": \"{{town}}\",\n            \"countryCode\": \"{{countryCode}}\",\n            \"postCode\": \"{{postCode}}\",\n            \"startDate\": \"{{startDate}}\",\n            \"endDate\": null\n        }\n    ],\n    \"aggregator\": \"{{aggregator}}\",\n    \"aggregatorRequestId\": \"{{aggregatorRequestId}}\",\n    \"changeInFinancialSituation\": null,\n    \"dateOfBirth\": \"{{dateOfBirth}}\",\n    \"emailAddress\": \"{{emailAddress}}\",\n    \"employerName\": \"{{employerName}}\",\n    \"employmentStatus\": \"{{employmentStatus}}\",\n    \"firstName\": \"{{firstName}}\",\n    \"grossAnnualIncome\": {{grossAnnualIncome}},\n    \"grossSalary\": null,\n    \"industry\": \"{{industry}}\",\n    \"jobTitle\": \"{{jobTitle}}\",\n    \"lastName\": \"{{lastName}}\",\n    \"loanAmount\": {{loanAmount}},\n    \"loanPurpose\": \"{{loanPurpose}}\",\n    \"loanTerm\": {{loanTerm}},\n    \"maritalStatus\": \"{{maritalStatus}}\",\n    \"numberOfDependents\": {{numberOfDependents}},\n    \"otherNonEmployerIncome\": null,\n    \"partnerGrossIncome\": null,\n    \"propertyCost\": {{propertyCost}},\n    \"residentialStatus\": \"{{residentialStatus}}\",\n    \"title\": \"{{title}}\",\n    \"workStartDate\": \"{{workStartDate}}\"\n}"
+				},
+				"url": {
+					"raw": "https://rc-preapproval.saldev.net/api/PreApproval",
+					"protocol": "https",
+					"host": ["rc-preapproval", "saldev", "net"],
+					"path": ["api", "PreApproval"]
+				}
+			}
+		}
+	]
+}

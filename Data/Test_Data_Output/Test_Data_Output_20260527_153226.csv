@@ -1,0 +1,2 @@
+"email","payrollId","firstName","lastName","title","dateOfBirth","loanAmount","loanPurpose","buildingNumber","street","town","postCode","applyUrl","urlTarget"
+"sharon.rajapaksa.VZ400DB@saldev.net","VZ400DB","Sharon","Rajapaksa","Ms","1982-11-03","1500","VehicleLoan","80B","High Street","St. Albans","AL3 8LE","https://apistaging.saldev.net/preapprovals/bf50eb14-8e22-4017-bd50-59c17b8014ed",""

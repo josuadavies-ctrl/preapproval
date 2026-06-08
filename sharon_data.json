@@ -1,0 +1,22 @@
+[
+  {
+    "firstName": "Sharon",
+    "lastName": "Rajapaksa",
+    "emailAddress": "s.rajapaksaTK798TP@saldev.net",
+    "loanAmount": 2500,
+    "grossAnnualIncome": 90000,
+    "aggregatorRequestId": "ba2ec2c1-3e3f-4ce3-ad49-b8dad85bc130",
+    "buildingNumber": "80B",
+    "buildingName": "",
+    "street": "High Street",
+    "town": "St. Albans",
+    "countryCode": "GB",
+    "postCode": "AL3 8LE",
+    "startDate": "2022-01-01",
+    "dateOfBirth": "1982-10-21",
+    "employerName": "RT Proactive",
+    "employmentStatus": "EmployedFullTime",
+    "jobTitle": "DeliveryDriver",
+    "loanPurpose": "VehicleLoan"
+  }
+]

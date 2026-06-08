@@ -1,0 +1,62 @@
+name: E2E Preapproval Sequence Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      headless:
+        description: 'Run Playwright tests headlessly (Recommended for Cloud)?'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  execute-pipeline:
+    name: Run Sequence Pipeline
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Configure Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Newman Globally
+        run: npm install -g newman
+
+      - name: Configure .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore NuGet Dependencies
+        run: dotnet restore
+
+      - name: Compile Test Projects
+        run: dotnet build --no-restore --configuration Debug
+
+      - name: Install Playwright Browsers
+        run: |
+          dotnet tool install --global Microsoft.Playwright.CLI || echo "Already installed"
+          playwright install --with-deps
+
+      - name: Execute Orchestrator Sequence
+        env:
+          HEADLESS: ${{ github.event.inputs.headless }}
+          USERNAME: "GitHub-Cloud-Runner"
+        run: |
+          powershell -ExecutionPolicy Bypass -File .\Salary_Finance_(Preapproval)\SequenceRunner.ps1
+
+      - name: Archive Test Ledger & Artifact Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Preapproval-Run-Results
+          path: |
+            Salary_Finance_(Preapproval)/Data/Master_Ledger/
+            Salary_Finance_(Preapproval)/Data/Test_Data_Output/
+            Salary_Finance_(Preapproval)/Data/Journey_Report/
+            Salary_Finance_(Preapproval)/bin/Debug/net10.0/*.png
+          if-no-files-found: warn
