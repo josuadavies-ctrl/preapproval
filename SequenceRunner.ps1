@@ -34,6 +34,14 @@ Check-StepResult -ExitCode $LASTEXITCODE -StepName "Step B (Data Seeding)"
 Write-Host "Waiting 15 seconds for RC environment App Pools to recycle..." -ForegroundColor Yellow
 Start-Sleep -Seconds 15
 
+Write-Host "📡 Testing network route to Ops Admin UI..." -ForegroundColor Yellow
+try {
+    $response = Invoke-WebRequest -Uri "https://rc-opsadminui.saldev.net/login" -TimeoutSec 10 -Method Head -ErrorAction Stop
+    Write-Host "✅ Route Open! Received Status Code: $($response.StatusCode)" -ForegroundColor Green
+} catch {
+    Write-Error "❌ NETWORK ISOLATION DETECTED: The GitHub Actions runner cannot reach the Ops Admin UI. Reason: $($_.Exception.Message)"
+    Exit 1
+}
 # 2. Run UI and API Test Automation Steps
 Write-Host "Starting Step C (Ops Admin)..." -ForegroundColor Cyan
 dotnet test --filter C_OpsAdmin
