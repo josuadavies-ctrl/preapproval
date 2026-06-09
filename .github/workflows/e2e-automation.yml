@@ -42,13 +42,10 @@ jobs:
           dotnet tool install --global Microsoft.Playwright.CLI || echo "Already installed"
           playwright install --with-deps
 
-      - name: Execute Orchestrator Sequence
+      - uses: actions/checkout@v4
+      - name: Run Script
+        run: ./Salary_Finance_(Preapproval)/SequenceRunner.ps1
         shell: pwsh
-        env:
-          HEADLESS: ${{ github.event.inputs.headless }}
-          USERNAME: "GitHub-Cloud-Runner"
-        run: |
-          & './Salary_Finance_(Preapproval)/SequenceRunner.ps1'
 
       - name: Archive Test Ledger & Artifact Reports
         if: always()
