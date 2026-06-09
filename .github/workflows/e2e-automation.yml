@@ -42,9 +42,8 @@ jobs:
           dotnet tool install --global Microsoft.Playwright.CLI || echo "Already installed"
           playwright install --with-deps
 
-      - uses: actions/checkout@v4
-      - name: Run Script
-        run: ./Salary_Finance_(Preapproval)/SequenceRunner.ps1
+      - name: Run Sequence Runner
+        run: .\SequenceRunner.ps1
         shell: pwsh
 
       - name: Archive Test Ledger & Artifact Reports
