@@ -19,146 +19,64 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install and Connect to Corporate VPN
+        env:
+          VPN_CONFIG_DATA: ${{ secrets.VPN_CONFIG }}
+          VPN_AUTH_DATA: ${{ secrets.VPN_CREDENTIALS }}
         run: |
-          # 1. Install OpenVPN using Chocolatey
+          # 1. Install OpenVPN cleanly via Chocolatey
           choco install openvpn -y
           
-          # 2. Write the .ovpn profile directly to a local file
-          $ovpnContent = @"
-          setenv USERNAME "salaryfinance/josua.davies%40salaryfinance.com_6488/1bd363f7-11f6-416d-aa57-1aac0b656985"
-          # OVPN_WEBAUTH_FRIENDLY_USERNAME=salaryfinance/josua.davies@salaryfinance.com/device_1764138442948
-          # OVPN_FRIENDLY_PROFILE_NAME=josua.davies@salaryfinance.com@salaryfinance.openvpn.com [London]
-          client
-          dev tun
-          remote gb-lhr.gw.openvpn.com 1194 udp
-          remote gb-lhr.gw.openvpn.com 1194 udp
-          remote gb-lhr.gw.openvpn.com 443 tcp
-          remote gb-lhr.gw.openvpn.com 1194 udp
-          remote gb-lhr.gw.openvpn.com 1194 udp
-          remote gb-lhr.gw.openvpn.com 1194 udp
-          remote gb-lhr.gw.openvpn.com 1194 udp
-          remote gb-lhr.gw.openvpn.com 1194 udp
-          remote-cert-tls server
-          cipher AES-256-CBC
-          auth SHA256
-          persist-tun
-          nobind
-          verb 3
-          socket-flags TCP_NODELAY
-          push-peer-info
-
-          <ca>
-          -----BEGIN CERTIFICATE-----
-          MIIDRDCCAiygAwIBAgIJAPRJm0V+RAQkMA0GCSqGSIb3DQEBCwUAMBsxGTAXBgNV
-          BAMMEENsb3VkVlBOIFByb2QgQ0EwHhcNMTkxMDE2MTgwNDQ3WhcNNDkxMDA4MTgw
-          NDQ3WjAbMRkwFwYDVQQDDBBDbG91ZFZQTiBQcm9kIENBMIIBIjANBgkqhkiG9w0B
-          AQEFAAOCAQ8AMIIBCgKCAQEAvbodWcvyngHYGLVvLHTy9hLFIqrkxWQqi7gnC4RO
-          Nz0VLzr9WckNN+kE7IrI9qbWL+F/4g5FKNOAayZf1Xc6YU2kV2JkXiScfGexsbFN
-          rG+CFnphEdk2gJmDEFNxtDmxFVaTv7QCgtcijYEGMADW07sFfvDX0fjeKCTatSe6
-          rVrQ0jCKsKoOtTiE2IvIlg41cvM7N7Pj/WVFs3Rwjbctd/i+bJ9A4j+G5gCR13KE
-          Y48fCmkuvptaXZ8JyKoisoX46XTqDEQqBSG3exT6txlgsdqd+obp+CtuhPQQAVH4
-          f04bM/wNDbFDWVPl0AbdKj9EmdBPIroLWi4VYtJeu4vjMQIDAQABo4GKMIGHMB0G
-          A1UdDgQWBBTZQ8jn1xwiL3mg+FhSrS5WLh7bKDBLBgNVHSMERDBCgBTZQ8jn1xwi
-          L3mg+FhSrS5WLh7bKKEfpB0wGzEZMBcGA1UEAwwQQ2xvdWRWUE4gUHJvZCBDQYIJ
-          APRJm0V+RAQkMAwGA1UdEwQFMAMBAf8wCwYDVR0PBAQDAgEGMA0GCSqGSIb3DQEB
-          CwUAA4IBAQBCk7zsTsiC0qEtwAfN1yo6VgbTBJf/rBDtoIjofVNDtpjaDZBA3/PT
-          v+aJJEHSYaP7xNX91cP32Un09aG9BDT4OuLhYO3mOx+ghmFCCt5NhTvbT4gqmWfi
-          MNaB8Z89gSaeuduD46btNjk+SeIWKBDrZlq0tJ9zexi6OEkre/XA7lssDTtE4GaC
-          5xKtug1TxrzRziWv2OA14RLGq8n0Hhk40xdhrvE+bhWAUsd2fbfNxTzwhsfQrBH7
-          K4FWB1sRavCTokSSJ7OX4R3w8QIn7Ziyqzu9JLJ5sy0EhVQxkQpuoW3BwmDVdXLS
-          d4rhWO4aNE5qqE6lq5AOJ1riv7BrZ4jj
-          -----END CERTIFICATE-----
-          </ca>
-
-          <cert>
-          -----BEGIN CERTIFICATE-----
-          MIIDSTCCAjGgAwIBAgIDJTbxMA0GCSqGSIb3DQEBCwUAMBsxGTAXBgNVBAMMEENs
-          b3VkVlBOIFByb2QgQ0EwIBcNMjUxMTE5MDYyNzI1WhgPMjA1MDExMjAwNjI3MjVa
-          MGMxYTBfBgNVBAMMWHNhbGFyeWZpbmFuY2Uvam9zdWEuZGF2aWVzJTQwc2FsYXJ5
-          ZmluYW5jZS5jb21fNjQ4OC8xYmQzNjNmNy0xMWY2LTQxNmQtYWE1Ny0xYWFjMGI2
-          NTY5ODUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQD1lp49YldJvz6n
-          /Iv0zqg+/2p4hqc2F7jpGYuvaKf+J274N3MgxIdhhCzx9WwrLlL+C7w9eI9bgrcc
-          qmd7NcnzB4xS2smPpmMoHs7KygJ/NWWNTD2VKjuJ8fRhFJJ7iS73pkEy4vG3tOFD
-          YQjaLbAVtjd3St6nVbM3s5TjZpwnlK0LUos3j6j6e1aXCpFz49YSSfXV88j7ch2K
-          yAbMIUh+RfY6WLH+r3LejNwKsgELt601RXKDN3WAxAFkov+GTAaef6CTqvIKBD7f
-          EqtCQIXmjgwPzIaPwOyxHBDFV85gVXDnmdrDfSxhS/QKY/9bTQYFu8fi0ZIGdJPQ
-          2t2KbuA9AgMBAAGjTDBKMA4GA1UdDwEB/wQEAwIChDATBgNVHSUEDDAKBggrBgEF
-          BQcDAjAJBgNVHRMEAjAAMBgGA1UdEQQRMA+BDXNhbGFyeWZpbmFuY2UwDQYJKoZI
-          hvcNAQELBQADggEBABue4NTs1qMJ9VwXGsGoizoArbCNYie25aZOcxfIS9CNC4hu
-          7CEsHvkmLj5wjj1AGOrXXxDOHbsCzOFHKDfWIinBAUoVrzJDOqwwmLYADBeqMozc
-          TRj8+Kp4pNFtoXOP8Rc6TNJOG6x32s5TG2zrgPIqAvPhfKxccIxbf4HIv7RihQTo
-          HJD2dz3fI5vBMwNNrNhAfHySq+rrfzhUWLrQAu6ORaMGJ8cM5Jr3kdrgEW5qvkmf
-          Yc1rizGdi1FC2p2TnvIcEZCK8BrWOrokXv9LlXPOgHAbEdiRUr+X7H9FajY+ZgOP
-          kjUYYRU0v5nc/yQlMY9iz2Sf13nX/1TlR+jk1ic=
-          -----END CERTIFICATE-----
-          </cert>
-
-          <key>
-          -----BEGIN RSA PRIVATE KEY-----
-          MIIEpQIBAAKCAQEA9ZaePWJXSb8+p/yL9M6oPv9qeIanNhe46RmLr2in/idu+Ddz
-          IMSHYYQs8fVsKy5S/gu8PXiPW4K3HKpnezXJ8weMUtrJj6ZjKB7OysoCfzVljUw9
-          lSo7ifH0YRSSe4ku96ZBMuLxt7ThQ2EI2i2wFbY3d0rep1WzN7OU42acJ5StC1KL
-          N4+o+ntWlwqRc+PWEkn11fPI+3IdisgGzCFIfkX2Olix/q9y3ozcCrIBC7etNUVy
-          gzd1gMQBZKL/hkwGnn+gk6ryCgQ+3xKrQkCF5o4MD8yGj8DssRwQxVfOYFVw55na
-          w30sYUv0CmP/W00GBbvH4tGSBnST0Nrdim7gPQIDAQABAoIBABYEsb2/qCNKw++U
-          NykU8SUqya0yJ2I0aMXvXiR1HeCtwOd8szP8IsYlr1DnJ9JMRjEUNMWPHk0+UDP/
-          /CSiCy/gnJ5eEsWwDYJOlsw8JdKpYygyrm/F+E4TFQ2yJjrwrvcRnxVUnwbRLwQX
-          Ok+zWm7r5heqLQG0L4v+LApiS/xJTW3VytH2f4dXpEApqkln2qULyStgos+exnkZ
-          +r7cfDyLzHrYFCK1HOY+vCeuzh/1xKWVjHrxn3Azlz2kKr/fi55XLPhCHsFiMbqo
-          ulDdl9qwoVH0JWxfVhAZAqtc4g3jC0V6BIk06/CYFQeyXaJcP8bd4ybZ6r/Rq+Tz
-          J0LH+EkCgYEA/uNe+OeqJ6xRzXb0r3cAYiJeM9/HWqIycUzmtr/wHK9l860UXN5d
-          Qv8n1vpB6xBdSOS56WtQEvFP0AeVGdcraqgBOct/bpuIvy0O7YYzp/FYaEz+VJPq
-          w0siL+vyeqxaWco2maygK1nKDcjCQplFfwkVo+pH9yZ9nV95Cz1mS/kCgYEA9qjc
-          uUjFH3TdpTxdiLZKMnJTYH2o2EDj01QR1VTz9qRLuNlKyBeV5jnAK5f17VIMiltR
-          4VIbf6DkHOtop+8uv2lAmKvTEWPJ13iodFl9jy8PDxmmkFTWJ1TqaR3RiLFfkG53
-          vfKxKtU/7kLKeIIecEWFj6FPQD3C2E9JkPNN32UCgYEAv1CcjYkdX4/pCqZ5/GX/
-          BKm1OYyDDtVltUM6fPtOV8mTZbaI7Tf+mnX4SlUnOy/aRQdhQAHLZZx5ArVeRboK
-          nZCi8uV6rePSXWSNqt0rUqhFamw4DfXEpXd0nrGkHE3Xt0OfffNjeYZ4saX5oZF3
-          52VDN/h2sdzTNldd/IDGkskCgYEA76ICPmf6SqNJKlzJKiafUv9LDXVHckEolYkZ
-          gj50fewEPOOuCVMQqIj2r+OEYznRQSGTHOqeGJKAy6/RD0YKDp/8x9Y2yrA9yf5I
-          +jBvEYpQgQUUkyg4niGbUuBLTxezligcYQfFI63l3F47QnR3ie+g4HeA/RKDl48A
-          E7issRkCgYEA0BtVd3AtnMONYQujlWWmLP30ZiOpc9wTmrQSQ7KUpJSmv7xWsfhg
-          PTWKaop6rLBBUVon/pJEm5fPLs4TrgBJMmxQd4SysfXELAJ5oR6nFGgn38cRVF+5
-          JF5opfp2AUofZxE9fWLKfdXhJ+BYe+Q5uwAYPS93+T1GiePp/jr3rE0=
-          -----END RSA PRIVATE KEY-----
-          </key>
-
-          key-direction 1
-          <tls-auth>
-          -----BEGIN OpenVPN Static key V1-----
-          4f65292e639c83574026ab790f67257b
-          e92f02e96e3c95db3634393b0c3c094b
-          71dbef6ab0e715aff9e5d574a69f015e
-          acb57293a0cb91c57cb4f9064a000d3b
-          640285c8af740c1910193be5e3ab81af
-          009e16f916478a1c3a629057cc622afd
-          8a705bd893c316a944f1fda6a2e5c1b3
-          4af9fc0233f15fac4a2b125ab9aaaa4d
-          8604bebe99e5c2470edda8c39eeb2609
-          d8c1db928e1035880fc4a2c695057e21
-          335867cfdea9f041c7b2090702667ed4
-          8ddb8310edb9320a41a570624812dfaf
-          d7ca0131085f044490dae138c61bbf63
-          15bb98cea0628b99a10de850ed7ee43e
-          0dd7e5f446439846a4f2319ec5f735f8
-          521021b9e6d45cdee7bfd22fce270a49
-          -----END OpenVPN Static key V1-----
-          </tls-auth>
-          "@
-          $ovpnContent | Out-File -FilePath "client.ovpn" -Encoding ascii
+          # 2. Extract and save secrets to disk dynamically
+          $VpnDir = "C:\VpnConfig"
+          if (!(Test-Path $VpnDir)) { New-Item -ItemType Directory -Path $VpnDir | Out-Null }
           
-          # 3. Write user details directly to the authentication configuration
-          $authContent = @"
-          salaryfinance/josua.davies@salaryfinance.com/device_1764138442948
-          Klopklop900-
-          "@
-          $authContent | Out-File -FilePath "credentials.txt" -Encoding ascii
+          # Ensure routing does not hijack the GitHub Agent connection
+          # We explicitly append route-nopull to prevent global gateway overrides
+          $ConfigPath = "$VpnDir\client.ovpn"
+          $VpnConfigData + "`nroute-nopull`n" | Out-File -FilePath $ConfigPath -Encoding ascii -Force
+          $VpnAuthData | Out-File -FilePath "$VpnDir\credentials.txt" -Encoding ascii -Force
           
-          # 4. Initialize client network connection asynchronously
-          Start-Process "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config client.ovpn --auth-user-pass credentials.txt" -NoNewWindow
+          Write-Host "🚀 Initializing OpenVPN Interface Daemon..." -ForegroundColor Cyan
           
-          # 5. Handshake validation pause
-          Start-Sleep -Seconds 15
+          # 3. Start OpenVPN explicitly tracking an isolated log file
+          $LogPath = "$VpnDir\openvpn.log"
+          Start-Process "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config `"$ConfigPath`" --auth-user-pass `"$VpnDir\credentials.txt`" --log `"$LogPath`"" -NoNewWindow
+          
+          # 4. Active Handshake Verification Loop (Max 45 seconds)
+          $Connected = $false
+          for ($i = 1; $i -le 15; $i++) {
+              Start-Sleep -Seconds 3
+              if (Test-Path $LogPath) {
+                  $Logs = Get-Content $LogPath
+                  if ($Logs -match "Initialization Sequence Completed") {
+                      Write-Host "✅ VPN Tunnel Successfully Established!" -ForegroundColor Green
+                      $Connected = $true
+                      break
+                  }
+              }
+              Write-Host "⏳ Waiting for tunnel handshake... (Attempt $i/15)" -ForegroundColor Yellow
+          }
+          
+          if (!$Connected) {
+              Write-Error "❌ VPN CONNECTION FAILED: Handshake sequence timed out or aborted."
+              if (Test-Path $LogPath) { Get-Content $LogPath | Select-Object -Last 20 }
+              Exit 1
+          }
+          
+          # 5. Inject a strict corporate network route definition
+          # Replace 10.0.0.0/8 with the actual internal private subnet range of rc-opsadminui.saldev.net
+          Write-Host "📡 Binding internal staging routes to the VPN interface..." -ForegroundColor Cyan
+          route add 10.0.0.0 mask 255.0.0.0 0.0.0.0 metric 1
+          
+          # 6. Network Gateway Smoke Test
+          Write-Host "📡 Verifying route visibility to Ops Admin Portal..." -ForegroundColor Cyan
+          try {
+              $Response = Invoke-WebRequest -Uri "https://rc-opsadminui.saldev.net/login" -TimeoutSec 10 -Method Head -ErrorAction Stop
+              Write-Host "✅ Network Access Confirmed! Status Code: $($Response.StatusCode)" -ForegroundColor Green
+          } catch {
+              Write-Error "❌ FIREWALL BLOCK: Connected to VPN, but destination UI remains unreachable. Reason: $($_.Exception.Message)"
+              Exit 1
+          }
         shell: pwsh
 
       - name: Configure Node.js Environment
