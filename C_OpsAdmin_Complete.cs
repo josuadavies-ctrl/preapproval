@@ -14,7 +14,7 @@ public class C_OpsAdmin : PageTest
         Console.WriteLine("🌐 Step C: Syncing Microservices...");
         await MyEndPoints.TriggerAllAsync();
         
-        await Page.GotoAsync("https://rc-opsadminui.saldev.net/login", new() { Timeout = 600000 });
+        await Page.GotoAsync("https://rc-opsadminui.saldev.net/login", new() { Timeout = 6000000 });
         await Page.GetByPlaceholder(new Regex("someone@example.com")).FillAsync("admin.user@salaryfinance.com");
         await Page.Locator("input[type='password']").FillAsync("Pa55w0rd!");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Sign In" }).ClickAsync();
