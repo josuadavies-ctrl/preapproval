@@ -38,9 +38,9 @@ jobs:
           
           Write-Host "🚀 Initializing OpenVPN Interface Daemon..." -ForegroundColor Cyan
           
-          # 3. Start OpenVPN explicitly tracking an isolated log file
+          # 3. Start OpenVPN explicitly tracking an isolated log file (Forcing Wintun driver)
           $LogPath = "$VpnDir\openvpn.log"
-          Start-Process "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config `"$ConfigPath`" --auth-user-pass `"$VpnDir\credentials.txt`" --log `"$LogPath`"" -NoNewWindow
+          Start-Process "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config `"$ConfigPath`" --auth-user-pass `"$VpnDir\credentials.txt`" --log `"$LogPath`" --windows-driver wintun" -NoNewWindow
           
           # 4. Active Handshake Verification Loop (Max 45 seconds)
           $Connected = $false
