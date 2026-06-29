@@ -30,45 +30,66 @@ jobs:
           $VpnDir = "C:\VpnConfig"
           if (!(Test-Path $VpnDir)) { New-Item -ItemType Directory -Path $VpnDir | Out-Null }
           
+          $ConfigPath = Join-Path $VpnDir 'client.ovpn'
+          $CredPath   = Join-Path $VpnDir 'credentials.txt'
+          $LogPath    = Join-Path $VpnDir 'openvpn.log'
+
+          # 3. Read secrets from environment (PowerShell uses $env:...)
+          $vpnConfig = $env:VPN_CONFIG_DATA
+          $vpnAuth   = $env:VPN_AUTH_DATA
+
+          if (-not $vpnConfig) {
+              Write-Error "❌ VPN_CONFIG_DATA is empty or not provided."
+              Exit 1
+          }
+          if (-not $vpnAuth) {
+              Write-Error "❌ VPN_AUTH_DATA is empty or not provided."
+              Exit 1
+          }
+
           # Ensure routing does not hijack the GitHub Agent connection
           # We explicitly append route-nopull to prevent global gateway overrides
-          $ConfigPath = "$VpnDir\client.ovpn"
-          $VpnConfigData + "`nroute-nopull`n" | Out-File -FilePath $ConfigPath -Encoding ascii -Force
-          $VpnAuthData | Out-File -FilePath "$VpnDir\credentials.txt" -Encoding ascii -Force
-          
-          Write-Host "🚀 Initializing OpenVPN Interface Daemon..." -ForegroundColor Cyan
-          
-          # 3. Start OpenVPN explicitly tracking an isolated log file (Forcing Wintun driver)
-          $LogPath = "$VpnDir\openvpn.log"
-          Start-Process "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList "--config `"$ConfigPath`" --auth-user-pass `"$VpnDir\credentials.txt`" --log `"$LogPath`" --windows-driver wintun" -NoNewWindow
-          
-          # 4. Active Handshake Verification Loop (Max 45 seconds)
+          $vpnConfig + "`nroute-nopull`n" | Out-File -FilePath $ConfigPath -Encoding ascii -Force
+          $vpnAuth | Out-File -FilePath $CredPath -Encoding ascii -Force
+
+          Write-Host "🚀 Starting OpenVPN (logging to $LogPath)..." -ForegroundColor Cyan
+
+          # 4. Start OpenVPN explicitly tracking an isolated log file (Forcing Wintun driver)
+          $argList = "--config `"$ConfigPath`" --auth-user-pass `"$CredPath`" --log `"$LogPath`" --windows-driver wintun"
+          $proc = Start-Process -FilePath "C:\Program Files\OpenVPN\bin\openvpn.exe" -ArgumentList $argList -NoNewWindow -WindowStyle Hidden -PassThru
+
+          # 5. Active Handshake Verification Loop (extend timeout to ~90s)
           $Connected = $false
-          for ($i = 1; $i -le 15; $i++) {
+          for ($i = 1; $i -le 30; $i++) {
               Start-Sleep -Seconds 3
               if (Test-Path $LogPath) {
-                  $Logs = Get-Content $LogPath
+                  try {
+                      $Logs = Get-Content $LogPath -Raw -ErrorAction Stop
+                  } catch {
+                      $Logs = ""
+                  }
                   if ($Logs -match "Initialization Sequence Completed") {
                       Write-Host "✅ VPN Tunnel Successfully Established!" -ForegroundColor Green
                       $Connected = $true
                       break
                   }
               }
-              Write-Host "⏳ Waiting for tunnel handshake... (Attempt $i/15)" -ForegroundColor Yellow
+              Write-Host "⏳ Waiting for tunnel handshake... (Attempt $i/30)" -ForegroundColor Yellow
           }
-          
-          if (!$Connected) {
-              Write-Error "❌ VPN CONNECTION FAILED: Handshake sequence timed out or aborted."
-              if (Test-Path $LogPath) { Get-Content $LogPath | Select-Object -Last 20 }
+
+          if (-not $Connected) {
+              Write-Error "❌ VPN CONNECTION FAILED: Handshake timed out or aborted. Last 60 lines of $LogPath:"
+              if (Test-Path $LogPath) { Get-Content $LogPath | Select-Object -Last 60 }
+              if ($proc) { Write-Host "OpenVPN process status: Id=$($proc.Id) HasExited=$($proc.HasExited)" }
               Exit 1
           }
-          
-          # 5. Inject a strict corporate network route definition
-          # Replace 10.0.0.0/8 with the actual internal private subnet range of rc-opsadminui.saldev.net
+
+          # 6. Inject a strict corporate network route definition (optional — ensure gateway/interface correct for your environment)
           Write-Host "📡 Binding internal staging routes to the VPN interface..." -ForegroundColor Cyan
-          route add 10.0.0.0 mask 255.0.0.0 0.0.0.0 metric 1
+          # NOTE: Replace <VPN_GATEWAY_IP> and/or IF <ifIndex> with correct values for your environment if you need to add a manual route.
+          # route add 10.0.0.0 mask 255.0.0.0 <VPN_GATEWAY_IP> metric 1
           
-          # 6. Network Gateway Smoke Test
+          # 7. Network Gateway Smoke Test
           Write-Host "📡 Verifying route visibility to Ops Admin Portal..." -ForegroundColor Cyan
           try {
               $Response = Invoke-WebRequest -Uri "https://rc-opsadminui.saldev.net/login" -TimeoutSec 10 -Method Head -ErrorAction Stop
